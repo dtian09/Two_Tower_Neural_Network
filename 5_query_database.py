@@ -1,4 +1,8 @@
-
+'''
+Query the ChromaDB database to retrieve the top k most relevant passages to the query.
+The query (embedding vector) is encoded using the query encoder of the trained two-tower network; 
+then, the encoded query is passed to the database and the database returns the top k passages by cosine similarity using approximate nearest neighbor.  
+'''
 import torch
 from transformers import AutoTokenizer, AutoModel
 from chromadb import PersistentClient
