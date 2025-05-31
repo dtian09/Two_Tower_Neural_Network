@@ -1,5 +1,5 @@
 '''
-This script creates a ChromaDB collection from the MS MARCO passage dataset.
+This script stores MS MARCO passages (embedding vectors) in the ChromaDB vector database.
 It loads the dataset, encodes the passages using an pretrained dual-encoder model,
 and stores the embeddings in ChromaDB.
 '''
