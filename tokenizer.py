@@ -1,5 +1,13 @@
+'''
+Tokenize a corpus and filter the corpus to only include top k most frequent words (tokens)
+output: filtered_corpus (list of the words in the filtered corpus)
+        word_to_id (dictionary: key=word, value=word id)
+        id_to_word (dictionary: key=word id, value=word)
+'''
+
 from collections import Counter
 import re
+import torch
 
 def tokenizer(text,top_k='all_words'):  
    # remove punctuation and non alphabetic characters
@@ -37,7 +45,7 @@ def tokenizer(text,top_k='all_words'):
 
 if __name__ == "__main__":
    # Example usage
-   #text = "This is a sample text with some words. Some words are repeated, and some are not."
+   text = "This is a sample text with some words. Some words are repeated, and some are not."
    top_k = 'all_words'  # or any integer value
    word_to_id, id_to_word, corpus = tokenizer(text, top_k=top_k)
    print("top_k:", top_k)
