@@ -3,7 +3,7 @@ This script implements a Skip-gram model using PyTorch.
 input: filtered_corpus.pt (output of filter_corpus.py)
        word_to_id.pt
        id_to_word.pt
-output: skip_gram_embeddings.pt file (dictionary with key= word id, value=embedding
+output: skip_gram_embeddings.pt file (dictionary with key= word id, value=embedding)
 '''
 import torch
 import torch.nn as nn

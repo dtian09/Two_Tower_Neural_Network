@@ -1,6 +1,6 @@
 '''
 This script stores MS MARCO passages (embedding vectors) in the ChromaDB vector database.
-It loads the dataset, encodes the passages using an pretrained dual-encoder model,
+It loads the MS MARCO dataset, encodes the passages using an pretrained dual-encoder model,
 and stores the embeddings in ChromaDB.
 '''
 import os
@@ -14,6 +14,9 @@ import torch
 from s3_train_test_tnn import text_to_embedding, TwoTowerTripletRNN, SimpleRNNCell
 from huggingface_hub import hf_hub_download
 from chromadb import PersistentClient
+from huggingface_hub import login
+
+HF_TOKEN = os.getenv("HF_TOKEN") #running command: HF_TOKEN=hf_token python script.py
 
 # === Settings ===
 COLLECTION_NAME = "ms_marco_passages"
