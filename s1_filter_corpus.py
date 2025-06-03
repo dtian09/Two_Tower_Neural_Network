@@ -11,7 +11,8 @@ import numpy as np
 import torch
 
 # Load the default config and split (defaults to split='train' if available)
-dataset = load_dataset("microsoft/ms_marco", 'v1.1')
+#pip install -U datasets
+dataset = load_dataset("microsoft/ms_marco", "v1.1")
 train_data = dataset['train']
 #test_data = dataset['test']
 #validation_data = dataset['validation']

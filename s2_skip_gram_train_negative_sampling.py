@@ -12,15 +12,17 @@ from collections import defaultdict
 import random
 import wandb
 
-wandb.init(project="skipgram-sgns", config={
-    "window_size": 2,
-    "embedding_dim": 200,#100,
-    "epochs": 30, #20, #100,
-    "learning_rate": 0.01,
-    "batch_size": 128,
-    #"dropout_rate": 0.3 ,
-    "training_percentage": 0.7
-})
+wandb.init(project="skipgram-sgns", 
+          entity="dtian", 
+          config={
+              "window_size": 2,
+              "embedding_dim": 200,#100,
+              "epochs": 30, #20, #100,
+              "learning_rate": 0.01,
+              "batch_size": 128,
+              #"dropout_rate": 0.3 ,
+              "training_percentage": 0.7
+          })
 
 config = wandb.config
 window_size = config.window_size
@@ -107,48 +109,7 @@ class SkipGramNegSampling(nn.Module):
         pos_score = torch.sum(target_emb * context_emb, dim=1)      # [B]
         neg_score = torch.bmm(neg_emb.neg(), target_emb.unsqueeze(2)).squeeze()  # [B, N]
         return pos_score, neg_score
-'''
-# Update model to compute dot products for positive and negative pairs
-class SkipGramNegSampling(nn.Module):
-    def __init__(self, vocab_size, embedding_dim, dropout_rate=0.3):  # You can change 0.3 to any value
-        super(SkipGramNegSampling, self).__init__()
-        self.target_embedding = nn.Embedding(vocab_size, embedding_dim)
-        self.context_embedding = nn.Embedding(vocab_size, embedding_dim)
-        self.dropout = nn.Dropout(dropout_rate)
-
-    def forward(self, target, context, negatives):
-        target_emb = self.dropout(self.target_embedding(target))         # [B, D]
-        context_emb = self.dropout(self.context_embedding(context))      # [B, D]
-        neg_emb = self.dropout(self.context_embedding(negatives))        # [B, N, D]
-
-        pos_score = torch.sum(target_emb * context_emb, dim=1)           # [B]
-        neg_score = torch.bmm(neg_emb.neg(), target_emb.unsqueeze(2)).squeeze()  # [B, N]
-
-        return pos_score, neg_score
-'''
-'''
-class SkipGramNegSampling(nn.Module):#with hidden layer
-    def __init__(self, vocab_size, embedding_dim, hidden_dim=128):
-        super(SkipGramNegSampling, self).__init__()
-        self.target_embedding = nn.Embedding(vocab_size, embedding_dim)
-        self.hidden = nn.Linear(embedding_dim, hidden_dim)
-        self.context_embedding = nn.Embedding(vocab_size, hidden_dim)
-
-    def forward(self, target, context, negatives):
-        target_emb = self.target_embedding(target)        # [B, D]
-        target_hidden = torch.relu(self.hidden(target_emb))  # [B, H]
-
-        context_emb = self.context_embedding(context)     # [B, H]
-        neg_emb = self.context_embedding(negatives)       # [B, N, H]
-
-        # Positive score
-        pos_score = torch.sum(target_hidden * context_emb, dim=1)  # [B]
-
-        # Negative scores
-        neg_score = torch.bmm(neg_emb.neg(), target_hidden.unsqueeze(2)).squeeze(2)  # [B, N]
-
-        return pos_score, neg_score
-'''
+        
 # Initialize model and sampler
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = SkipGramNegSampling(vocab_size, embedding_dim).to(device)
