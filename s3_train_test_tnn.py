@@ -1,3 +1,9 @@
+'''
+train two-tower network with 2 RNN encoders
+input: skip_gram_model.pt
+       word_to_id.pt
+       MS MARC (training and validation sets)    
+'''
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
