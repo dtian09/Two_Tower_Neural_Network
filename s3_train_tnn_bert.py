@@ -16,13 +16,6 @@ from torch.optim import AdamW
 from peft import get_peft_model, LoraConfig, TaskType
 from huggingface_hub import hf_hub_download
 
-# LoRA hyperparameters
-LORA_R = 8
-LORA_ALPHA = 32
-LORA_DROPOUT = 0.1
-LORA_TARGET_MODULES = ["query", "key", "value"]
-LORA_BIAS = "none"
-
 # Enable performance optimizations for consistent input shapes
 torch.backends.cudnn.benchmark = True
 
@@ -31,18 +24,18 @@ wandb.init(
     project="two-tower-ms_marco-lora",
     entity="dtian",
     config={
-        "batch_size": 32,
+        "batch_size": 8,
         "epochs": 10,
         "max_query_len": 20,
         "max_passage_len": 200,
         "margin": 0.2,
         "lr": 2e-5,
         "patience": 3,
-        "lora_r": LORA_R,
-        "lora_alpha": LORA_ALPHA,
-        "lora_dropout": LORA_DROPOUT,
-        "lora_target_modules": LORA_TARGET_MODULES,
-        "lora_bias": LORA_BIAS
+        "lora_r": 8,
+        "lora_alpha": 32,
+        "lora_dropout": 0.1,
+        "lora_target_modules": ["query", "key", "value"],
+        "lora_bias": "none"
     }
 )
 config = wandb.config
