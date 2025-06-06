@@ -137,7 +137,17 @@ if __name__ == "__main__":
   #count_rows_of_chromadb()
   
   #before running this script, run command: export HF_TOKEN=hf_token
+  
+  ###download from hugging face repository
+  #   
+  model_or_data_path = download_from_huggingface(repo_id = "dtian09/MS_MARCO",
+                                                model_or_data_pt = "best_two_tower_lora.pt")
+
+  print(torch.load(model_or_data_path, map_location="cpu"))
+
   '''
+  ###upload to hugging face repository
+  #
   import os
   from huggingface_hub import login
   
@@ -154,10 +164,6 @@ if __name__ == "__main__":
                                 repo_id=repo_id,
                                 repo_type=repo_type,
                                 model_or_data_pt=model_or_data_pt)
- ''' 
-
-  model_or_data_path = download_from_huggingface(repo_id = "dtian09/MS_MARCO",
-                                                model_or_data_pt = "best_two_tower_lora.pt")
-
-  print(torch.load(model_or_data_path, map_location="cpu"))
+  
+  '''
 
