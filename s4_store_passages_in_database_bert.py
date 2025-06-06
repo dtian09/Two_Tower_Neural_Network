@@ -15,35 +15,7 @@ import torch.nn as nn
 from transformers import BertModel
 from peft import get_peft_model, LoraConfig, TaskType
 from utilities import download_from_huggingface
-
-class TwoTowerBERTLoRA(nn.Module):#refactored class whose constructor takes a lora_config argument
-    def __init__(self, lora_config : LoraConfig=None):
-        super().__init__()
-
-        # default config if not provided
-        if lora_config is None:
-            lora_config = LoraConfig(
-                r=8,
-                lora_alpha=32,
-                target_modules=["query", "key", "value"],
-                lora_dropout=0.1,
-                bias="none",
-                task_type=TaskType.FEATURE_EXTRACTION
-            )
-
-        # Create base BERT models
-        base_q = BertModel.from_pretrained("bert-base-uncased")
-        base_p = BertModel.from_pretrained("bert-base-uncased")
-
-        # Wrap with LoRA adapters
-        self.query_encoder = get_peft_model(base_q, lora_config)
-        self.passage_encoder = get_peft_model(base_p, lora_config)
-
-    def forward(self, q_inputs, pos_inputs, neg_inputs):
-        q_vec = self.query_encoder(**q_inputs).pooler_output
-        p_pos = self.passage_encoder(**pos_inputs).pooler_output
-        p_neg = self.passage_encoder(**neg_inputs).pooler_output
-        return q_vec, p_pos, p_neg
+from s3_train_tnn_bert import TwoTowerBERTLoRA
 
 if __name__ == "__main__":
     # === Settings ===

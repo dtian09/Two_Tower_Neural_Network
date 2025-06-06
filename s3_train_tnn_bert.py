@@ -81,11 +81,7 @@ def collate_batch(batch):
     neg_tokens = tokenizer(list(n), padding=True, truncation=True, max_length=config.max_passage_len, return_tensors="pt")
     return query_tokens, pos_tokens, neg_tokens
 
-# LoRA-wrapped Two-Tower model
-class TwoTowerBERTLoRA(nn.Module):
-    def __init__(self):
-        super().__init__()
-        lora_cfg = LoraConfig(
+lora_cfg = LoraConfig(
             r=config.lora_r,
             lora_alpha=config.lora_alpha,
             target_modules=config.lora_target_modules,
@@ -93,6 +89,11 @@ class TwoTowerBERTLoRA(nn.Module):
             bias=config.lora_bias,
             task_type=TaskType.FEATURE_EXTRACTION
         )
+
+# LoRA-wrapped Two-Tower model
+class TwoTowerBERTLoRA(nn.Module):
+    def __init__(self, lora_cfg : LoraConfig = None):
+        super().__init__()
         base_q = BertModel.from_pretrained("bert-base-uncased")
         base_p = BertModel.from_pretrained("bert-base-uncased")
         self.query_encoder = get_peft_model(base_q, lora_cfg)
@@ -170,7 +171,7 @@ def train_validate():
     train_loader = DataLoader(train_dataset, batch_size=config.batch_size, shuffle=True, collate_fn=collate_batch)
     val_loader = DataLoader(val_dataset, batch_size=config.batch_size, shuffle=False, collate_fn=collate_batch)
 
-    model = TwoTowerBERTLoRA().to(device)
+    model = TwoTowerBERTLoRA(lora_cfg=lora_cfg).to(device)
     optimizer = AdamW(model.parameters(), lr=config.lr)
     total_steps = len(train_loader) * config.epochs
     scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=0, num_training_steps=total_steps)

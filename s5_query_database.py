@@ -15,7 +15,7 @@ logging.set_verbosity(logging.ERROR)
 import torch
 from transformers import BertTokenizer
 from chromadb import PersistentClient
-from s4_store_passages_in_database_bert import TwoTowerBERTLoRA
+from s3_train_tnn_bert import TwoTowerBERTLoRA
 from peft import LoraConfig, TaskType
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
