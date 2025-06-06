@@ -2,7 +2,7 @@ import os
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 os.environ["XLA_FLAGS"] = "--xla_gpu_cuda_data_dir="
 os.environ["ABSL_LOGGING"] = "0"
-os.environ["WANDB_MODE"] = "disabled"
+#os.environ["WANDB_MODE"] = "disabled"
 from absl import logging
 logging.set_verbosity(logging.ERROR)
 import uuid
@@ -14,9 +14,7 @@ from chromadb import PersistentClient
 import torch.nn as nn
 from transformers import BertModel
 from peft import get_peft_model, LoraConfig, TaskType
-import wandb
-
-wandb.login()
+from utilities import download_from_huggingface
 
 class TwoTowerBERTLoRA(nn.Module):#refactored class whose constructor takes a lora_config argument
     def __init__(self, lora_config : LoraConfig=None):
@@ -50,18 +48,19 @@ class TwoTowerBERTLoRA(nn.Module):#refactored class whose constructor takes a lo
 if __name__ == "__main__":
     # === Settings ===
     COLLECTION_NAME = "ms_marco_passages_lora"
-    N_QUERIES = 1000 #100 #'all' (each row of MS MARCO corresponds to a query)
+    N_QUERIES = 100 #1000 #100 #'all' (each row of MS MARCO corresponds to a query)
     BATCH_SIZE = 8 #batch size of tokenization
     MAX_BATCH_SIZE = 5000 #batch size of chunking passages
     PERSIST_DIR = "./chroma_db"
-    MODEL_PATH = "best_two_tower_lora.pt"
-
+    
     # === Load Tokenizer ===
     tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
 
     # === Load Checkpoint (state_dict + config) ===
+    MODEL_PATH = download_from_huggingface(repo_id = "dtian09/MS_MARCO",
+                                       model_or_data_pt = "best_two_tower_lora.pt")
     checkpoint = torch.load(MODEL_PATH, map_location="cpu")
-
+    
     if "config" in checkpoint:
       print('load lora_config from checkpoint.')
       lora_config = checkpoint["config"]
@@ -87,9 +86,9 @@ if __name__ == "__main__":
     # === Load Dataset ===
     print("Loading MS MARCO dataset...")
     if N_QUERIES == 'all':
-        dataset = load_dataset("ms_marco", "v1.1", split="test")
+        dataset = load_dataset("ms_marco", "v1.1", split="train")
     else:
-        dataset = load_dataset("ms_marco", "v1.1", split="test").select(range(N_QUERIES))
+        dataset = load_dataset("ms_marco", "v1.1", split="train").select(range(N_QUERIES))
 
     # === Extract Passage Texts ===
     passagesL = []
@@ -107,7 +106,10 @@ if __name__ == "__main__":
         for i in tqdm(range(0, len(passagesL), BATCH_SIZE)):
             batch_passages = passagesL[i:i+BATCH_SIZE]
             tokens = tokenizer(batch_passages, padding=True, truncation=True, max_length=200, return_tensors="pt").to(device)
-            embeddings = model.passage_encoder(**tokens).pooler_output
+            outputs = model.passage_encoder(**tokens)
+            token_embs = outputs.last_hidden_state
+            mask = tokens["attention_mask"].unsqueeze(-1)
+            embeddings = (token_embs * mask).sum(dim=1) / mask.sum(dim=1)
             embeddings = torch.nn.functional.normalize(embeddings, p=2, dim=-1)
             encoded_passagesL.extend(embeddings.cpu())
 
@@ -115,7 +117,11 @@ if __name__ == "__main__":
     client = PersistentClient(path=PERSIST_DIR)
     if COLLECTION_NAME in [c.name for c in client.list_collections()]:
         client.delete_collection(name=COLLECTION_NAME)
-    collection = client.create_collection(name=COLLECTION_NAME)
+    
+    collection = client.create_collection(
+                                          name="ms_marco_passages_lora",
+                                          metadata={"hnsw:space": "cosine"} #use cosine similarity metric for search 
+                                          )
 
     print("Adding to ChromaDB...")
     def chunked(data, size):

@@ -98,13 +98,27 @@ class TwoTowerBERTLoRA(nn.Module):
         self.query_encoder = get_peft_model(base_q, lora_cfg)
         self.passage_encoder = get_peft_model(base_p, lora_cfg)
 
+    def mean_pool(self, outputs, attention_mask):
+        token_embs = outputs.last_hidden_state
+        input_mask_expanded = attention_mask.unsqueeze(-1).expand(token_embs.size()).float()
+        return (token_embs * input_mask_expanded).sum(1) / input_mask_expanded.sum(1)
+
     def forward(self, q_inputs, pos_inputs, neg_inputs):
-        q_vec = self.query_encoder(**q_inputs).pooler_output
-        p_pos = self.passage_encoder(**pos_inputs).pooler_output
-        p_neg = self.passage_encoder(**neg_inputs).pooler_output
+        q_out = self.query_encoder(**q_inputs)
+        p_pos_out = self.passage_encoder(**pos_inputs)
+        p_neg_out = self.passage_encoder(**neg_inputs)
+
+        q_vec = self.mean_pool(q_out, q_inputs['attention_mask'])
+        p_pos = self.mean_pool(p_pos_out, pos_inputs['attention_mask'])
+        p_neg = self.mean_pool(p_neg_out, neg_inputs['attention_mask'])
         return q_vec, p_pos, p_neg
 
+
 def triplet_loss(q_vec, pos_vec, neg_vec, margin=0.2):
+    q_vec = F.normalize(q_vec, p=2, dim=-1)
+    pos_vec = F.normalize(pos_vec, p=2, dim=-1)
+    neg_vec = F.normalize(neg_vec, p=2, dim=-1)
+
     sim_pos = F.cosine_similarity(q_vec, pos_vec, dim=-1)
     sim_neg = F.cosine_similarity(q_vec, neg_vec, dim=-1)
     return F.relu(margin - sim_pos + sim_neg).mean()
