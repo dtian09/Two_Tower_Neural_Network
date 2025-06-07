@@ -140,30 +140,30 @@ if __name__ == "__main__":
   
   ###download from hugging face repository
   #   
+  '''
   model_or_data_path = download_from_huggingface(repo_id = "dtian09/MS_MARCO",
                                                 model_or_data_pt = "best_two_tower_lora.pt")
 
   print(torch.load(model_or_data_path, map_location="cpu"))
-
   '''
+  
   ###upload to hugging face repository
   #
   import os
   from huggingface_hub import login
   
   HF_TOKEN = os.getenv("HF_TOKEN") 
-  #repo_id = "dtian09/MS_MARCO"
-  #repo_type="dataset"
-  #model_or_data_pt = 'best_two_tower_lora.pt'
-  
-  repo_id = "dtian09/clip_llama"
-  repo_type="model"
-  model_or_data_pt = 'trained_clip_llama_50percent.zip'
+  repo_id = "dtian09/MS_MARCO"
+  repo_type="dataset"
+  #model_or_data_pt = 'best_two_tower_lora_average_pool.pt'
+  model_or_data_pt = 'chroma_db.zip'
+  #repo_id = "dtian09/clip_llama"
+  #repo_type="model"
+  #model_or_data_pt = 'trained_clip_llama_50percent.zip'
   
   upload_dataset_or_model_to_huggingface(token=HF_TOKEN,
                                 repo_id=repo_id,
                                 repo_type=repo_type,
                                 model_or_data_pt=model_or_data_pt)
   
-  '''
 

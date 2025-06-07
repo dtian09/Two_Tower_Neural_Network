@@ -10,6 +10,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = ""
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 os.environ["XLA_FLAGS"] = "--xla_gpu_cuda_data_dir="
 os.environ["ABSL_LOGGING"] = "0"
+os.environ["WANDB_MODE"] = "disabled"
 from absl import logging
 logging.set_verbosity(logging.ERROR)
 import torch
@@ -25,12 +26,13 @@ from utilities import download_from_huggingface
 CHROMA_COLLECTION_NAME = "ms_marco_passages_lora"
 TOP_K = 3
 PERSIST_DIR = "./chroma_db"
-query_length=30 #20 #number of tokens
+query_length=20 #number of tokens
 
 # === Load Tokenizer and Checkpoint ===
 tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+
 MODEL_PATH = download_from_huggingface(repo_id = "dtian09/MS_MARCO",
-                                       model_or_data_pt = "best_two_tower_lora.pt")
+                                       model_or_data_pt = "best_two_tower_lora_average_pool.pt")
 checkpoint = torch.load(MODEL_PATH, map_location="cpu")
 
 # === Load LoRA config from checkpoint or default ===
@@ -63,7 +65,7 @@ collection = client.get_collection(name=CHROMA_COLLECTION_NAME)
 while True:
   query = input("Enter your query: ")
 
-  # === Encode and Normalize Query ===
+  # === Tokenize, Encode and Normalize Query ===
   with torch.no_grad():
       tokens = tokenizer(query, return_tensors="pt", truncation=True, padding=True, max_length=query_length).to(device)
       outputs = model.query_encoder(**tokens)

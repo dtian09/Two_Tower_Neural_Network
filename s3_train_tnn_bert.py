@@ -15,9 +15,12 @@ from transformers import BertTokenizer, BertModel, get_linear_schedule_with_warm
 from torch.optim import AdamW
 from peft import get_peft_model, LoraConfig, TaskType
 from huggingface_hub import hf_hub_download
+import os
 
 # Enable performance optimizations for consistent input shapes
 torch.backends.cudnn.benchmark = True
+
+wandb.login(key=os.environ.get("WANDB_API_KEY"))
 
 # Init W&B
 wandb.init(
@@ -39,6 +42,9 @@ wandb.init(
     }
 )
 config = wandb.config
+
+best_model_pt = "best_two_tower_lora_average_pool.pt" #encoded passages and queries were normalized before computing cosine similarity
+#best_model_pt = "best_two_tower_lora.pt"
 
 # Load tokenizer
 tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
@@ -188,8 +194,7 @@ def train_validate():
 
         if val_loss < best_val_loss:
             best_val_loss = val_loss
-            torch.save(model.state_dict(), "best_two_tower_lora.pt")
-            wandb.save("best_two_tower_lora.pt")
+            torch.save(model.state_dict(), best_model_pt)
             patience_counter = 0
         else:
             patience_counter += 1
