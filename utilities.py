@@ -142,9 +142,9 @@ if __name__ == "__main__":
   ###download from hugging face repository
   #   
   
-  model_or_data_path = download_from_huggingface(repo_id = "dtian09/MS_MARCO",
-                                                model_or_data_pt = "best_two_tower_lora_average_pool.pt")
-  print(model_or_data_path)
+  #model_or_data_path = download_from_huggingface(repo_id = "dtian09/MS_MARCO",
+  #                                              model_or_data_pt = "best_two_tower_lora_average_pool.pt")
+  #print(model_or_data_path)
   model_or_data_path = download_from_huggingface(repo_id = "dtian09/MS_MARCO",
                                                 model_or_data_pt = "chroma_db.zip")
   print(model_or_data_path)
