@@ -1,3 +1,10 @@
+'''
+build a retrieval system (ChromaDB embeddings database) which contains MS MARCO passages encoded using the trained dual-encoder network
+input: MS MARCO passages,
+       TwoTowerBERTLoRA (passage encoder)
+output: a ChromaDB database (chroma_db)
+'''
+
 import os
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 os.environ["XLA_FLAGS"] = "--xla_gpu_cuda_data_dir="

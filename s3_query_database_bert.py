@@ -4,7 +4,13 @@ using Approximate Nearest Neighbor (ANN) search based on cosine similarity.
 
 The query is encoded with the trained Two-Tower BERT query encoder, normalized, 
 and passed directly to ChromaDB for ANN retrieval.
+
+input: chroma_db
+       query
+       TwoTowerBERTLoRA
+output: the most relevant passages using cosine similarity
 '''
+
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = ""
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
