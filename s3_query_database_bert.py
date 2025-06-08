@@ -22,7 +22,7 @@ logging.set_verbosity(logging.ERROR)
 import torch
 from transformers import BertTokenizer
 from chromadb import PersistentClient
-from s3_train_tnn_bert import TwoTowerBERTLoRA
+from s1_train_tnn_bert import TwoTowerBERTLoRA
 from peft import LoraConfig, TaskType
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity

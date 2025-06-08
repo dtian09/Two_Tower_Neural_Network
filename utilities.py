@@ -33,6 +33,7 @@ def upload_dataset_or_model_to_huggingface(
     print("Upload complete!")
 
 def download_from_huggingface(repo_id = "dtian09/MS_MARCO",
+                              local_dir=".", #download (a symbolic link to the file (cached in a default dir)) to current working dir
                               model_or_data_pt = "best_two_tower_model.pt"):
 
     from huggingface_hub import hf_hub_download
@@ -140,13 +141,14 @@ if __name__ == "__main__":
   
   ###download from hugging face repository
   #   
-  '''
-  model_or_data_path = download_from_huggingface(repo_id = "dtian09/MS_MARCO",
-                                                model_or_data_pt = "best_two_tower_lora.pt")
-
-  print(torch.load(model_or_data_path, map_location="cpu"))
-  '''
   
+  model_or_data_path = download_from_huggingface(repo_id = "dtian09/MS_MARCO",
+                                                model_or_data_pt = "best_two_tower_lora_average_pool.pt")
+  print(model_or_data_path)
+  model_or_data_path = download_from_huggingface(repo_id = "dtian09/MS_MARCO",
+                                                model_or_data_pt = "chroma_db.zip")
+  print(model_or_data_path)
+  '''
   ###upload to hugging face repository
   #
   import os
@@ -165,5 +167,5 @@ if __name__ == "__main__":
                                 repo_id=repo_id,
                                 repo_type=repo_type,
                                 model_or_data_pt=model_or_data_pt)
-  
+  '''
 
