@@ -15,7 +15,7 @@ import torch
 from transformers import BertTokenizer
 from datasets import load_dataset
 from chromadb import PersistentClient
-from s3_train_tnn_bert import TwoTowerBERTLoRA
+from s1_train_tnn_bert import TwoTowerBERTLoRA
 from peft import LoraConfig, TaskType
 from utilities import download_from_huggingface
 import numpy as np

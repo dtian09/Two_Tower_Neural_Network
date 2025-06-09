@@ -29,7 +29,7 @@ class PassageDatabaseBuilder:
                  n_queries=1000,
                  batch_size=8,
                  max_batch_size=5000,
-                 persist_dir="./chroma_db"):
+                 persist_dir="./chroma_db10"):
         self.COLLECTION_NAME = collection_name
         self.N_QUERIES = n_queries
         self.BATCH_SIZE = batch_size

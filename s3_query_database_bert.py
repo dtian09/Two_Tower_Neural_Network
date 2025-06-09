@@ -125,8 +125,6 @@ class ChromaDBQueryEngine:
                     print(f"Text: {doc}")
                     print(f"Metadata: {metadata}")
                 results_list.append(results)
-            # Return results for the current query
-            return results
 
 def main():
     engine = ChromaDBQueryEngine()
