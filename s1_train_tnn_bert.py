@@ -9,12 +9,10 @@ from torch.utils.data import Dataset, DataLoader
 from datasets import load_dataset
 import wandb
 import numpy as np
-import re
 from tqdm import tqdm
 from transformers import BertTokenizer, BertModel, get_linear_schedule_with_warmup
 from torch.optim import AdamW
 from peft import get_peft_model, LoraConfig, TaskType
-from huggingface_hub import hf_hub_download
 import os
 
 # Enable performance optimizations for consistent input shapes
@@ -28,6 +26,7 @@ class TwoTowerBERTLoRA(nn.Module):
         base_p = BertModel.from_pretrained("bert-base-uncased")
         self.query_encoder = get_peft_model(base_q, lora_cfg)
         self.passage_encoder = get_peft_model(base_p, lora_cfg)
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     def mean_pool(self, outputs, attention_mask):
         token_embs = outputs.last_hidden_state
@@ -76,7 +75,6 @@ class TwoTowerTrainer:
             bias=self.config.lora_bias,
             task_type=TaskType.FEATURE_EXTRACTION
         )
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     class TripletDataset(Dataset):
         def __init__(self, dataset, negative_sampling=False, seed=42):
@@ -121,9 +119,9 @@ class TwoTowerTrainer:
         total_loss = 0
         progress_bar = tqdm(loader, desc=f"Epoch {epoch+1}", leave=False)
         for q_inputs, pos_inputs, neg_inputs in progress_bar:
-            q_inputs = {k: v.to(self.device) for k, v in q_inputs.items()}
-            pos_inputs = {k: v.to(self.device) for k, v in pos_inputs.items()}
-            neg_inputs = {k: v.to(self.device) for k, v in neg_inputs.items()}
+            q_inputs = {k: v.to(model.device) for k, v in q_inputs.items()}
+            pos_inputs = {k: v.to(model.device) for k, v in pos_inputs.items()}
+            neg_inputs = {k: v.to(model.device) for k, v in neg_inputs.items()}
             q_vec, p_pos, p_neg = model(q_inputs, pos_inputs, neg_inputs)
             loss = self.triplet_loss(q_vec, p_pos, p_neg, self.config.margin)
             optimizer.zero_grad()
@@ -155,7 +153,8 @@ class TwoTowerTrainer:
         val_dataset = self.TripletDataset(val_data)
         train_loader = DataLoader(train_dataset, batch_size=self.config.batch_size, shuffle=True, collate_fn=self.collate_batch)
         val_loader = DataLoader(val_dataset, batch_size=self.config.batch_size, shuffle=False, collate_fn=self.collate_batch)
-        model = self.TwoTowerBERTLoRA(lora_cfg=self.lora_cfg).to(self.device)
+        model = TwoTowerBERTLoRA(lora_cfg=self.lora_cfg)
+        model.to(model.device)
         optimizer = AdamW(model.parameters(), lr=self.config.lr)
         total_steps = len(train_loader) * self.config.epochs
         scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=0, num_training_steps=total_steps)

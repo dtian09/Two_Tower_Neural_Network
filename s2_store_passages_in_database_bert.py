@@ -19,11 +19,9 @@ from tqdm import tqdm
 from datasets import load_dataset
 from transformers import BertTokenizer
 from chromadb import PersistentClient
-import torch.nn as nn
-from transformers import BertModel
-from peft import get_peft_model, LoraConfig, TaskType
+from peft import LoraConfig, TaskType
 from utilities import download_from_huggingface
-from s3_train_tnn_bert import TwoTowerBERTLoRA
+from s1_train_tnn_bert import TwoTowerBERTLoRA
 
 class PassageDatabaseBuilder:
     def __init__(self, 
@@ -59,7 +57,8 @@ class PassageDatabaseBuilder:
                 bias="none",
                 task_type=TaskType.FEATURE_EXTRACTION
             )
-        model = TwoTowerBERTLoRA(lora_config).to(self.device)
+        model = TwoTowerBERTLoRA(lora_config)
+        model.to(model.device)
         model.load_state_dict(checkpoint["model_state_dict"] if "model_state_dict" in checkpoint else checkpoint)
         model.eval()
         return model, lora_config
@@ -123,7 +122,7 @@ class PassageDatabaseBuilder:
 
 
 def main():
-    builder = PassageDatabaseBuilder()
+    builder = PassageDatabaseBuilder(n_queries=10)
     builder.build()
 
 if __name__ == "__main__":

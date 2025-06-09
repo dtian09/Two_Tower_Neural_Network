@@ -135,8 +135,10 @@ if __name__ == "__main__":
   
   #check_ANN_search_metric()
 
-  #count_rows_of_chromadb()
-  
+  print("Starting ChromaDB row count...")
+  count_rows_of_chromadb()
+  print("Done.")
+
   #before running this script, run command: export HF_TOKEN=hf_token
   
   ###download from hugging face repository
@@ -145,9 +147,9 @@ if __name__ == "__main__":
   #model_or_data_path = download_from_huggingface(repo_id = "dtian09/MS_MARCO",
   #                                              model_or_data_pt = "best_two_tower_lora_average_pool.pt")
   #print(model_or_data_path)
-  model_or_data_path = download_from_huggingface(repo_id = "dtian09/MS_MARCO",
-                                                model_or_data_pt = "chroma_db.zip")
-  print(model_or_data_path)
+  #model_or_data_path = download_from_huggingface(repo_id = "dtian09/MS_MARCO",
+  #                                              model_or_data_pt = "chroma_db.zip")
+  #print(model_or_data_path)
   '''
   ###upload to hugging face repository
   #
