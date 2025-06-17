@@ -54,9 +54,9 @@ This repository provides a full pipeline for building a retrieval-augmented syst
 - Ensure you have enough disk space for ChromaDB and MS MARCO data.
 
 ## References
-- [MS MARCO Dataset](https://microsoft.github.io/msmarco/)
+- [MS MARCO Dataset on HuggingFace Datasets](https://huggingface.co/datasets/ms_marco)
 - [ChromaDB](https://www.trychroma.com/)
 - [LangChain](https://python.langchain.com/)
-- [HuggingFace Transformers](https://huggingface.co/transformers/)
+- [Two-Tower (Dual-Encoder) Network: Dense Passage Retrieval for Open-Domain Question Answering (Karpukhin et al., 2020)](https://arxiv.org/abs/2004.04906)
 
 
