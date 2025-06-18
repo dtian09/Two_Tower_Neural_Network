@@ -1,36 +1,46 @@
 '''
-RAG (Retrieval-Augmented Generation) pipeline using ChromaDB, TwoTowerBERTLoRA retriever, and a transformer generator, implemented with LangChain (OOP version).
+RAG (Retrieval-Augmented Generation) pipeline using LangChain with a custom retriever (ChromaDBQueryEngine) and a transformer generator.
 '''
 import torch
-from langchain_community.vectorstores import Chroma
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from transformers import pipeline
 from langchain_community.llms import HuggingFacePipeline
 from langchain.chains import RetrievalQA
 from langchain.prompts import PromptTemplate
-from transformers import pipeline
+from langchain.schema import BaseRetriever, Document
+from s3_query_database_bert import ChromaDBQueryEngine
 
-CHROMA_PERSIST_DIR = "./chroma_db"
-CHROMA_COLLECTION_NAME = "ms_marco_passages_lora"
-EMBEDDING_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
-GENERATOR_MODEL_NAME = "facebook/bart-large-cnn"
+class ChromaDBLangChainRetriever(BaseRetriever):
+    def __init__(self, chroma_engine, search_strategy="ann"):
+        self.chroma_engine = chroma_engine
+        self.search_strategy = search_strategy
+
+    def get_relevant_documents(self, query):
+        passages = self.chroma_engine.retrieve(query, search_strategy=self.search_strategy)
+        # Wrap passages as LangChain Documents
+        return [Document(page_content=p) for p in passages]
+
+    async def aget_relevant_documents(self, query):
+        return self.get_relevant_documents(query)
 
 class LangChainRAG:
     def __init__(self,
-                 chroma_persist_dir=CHROMA_PERSIST_DIR,
-                 chroma_collection_name=CHROMA_COLLECTION_NAME,
-                 embedding_model_name=EMBEDDING_MODEL_NAME,
-                 generator_model_name=GENERATOR_MODEL_NAME,
-                 top_k=3):
-        self.embeddings = HuggingFaceEmbeddings(model_name=embedding_model_name)
-        self.vectordb = Chroma(
-            persist_directory=chroma_persist_dir,
-            collection_name=chroma_collection_name,
-            embedding_function=self.embeddings
+                 chroma_collection_name="ms_marco_passages_lora",
+                 persist_dir="./chroma_db",
+                 top_k=3,
+                 query_length=20,
+                 generator_model_name="facebook/bart-large-cnn",
+                 device=None):
+        self.chroma_engine = ChromaDBQueryEngine(
+            chroma_collection_name=chroma_collection_name,
+            top_k=top_k,
+            persist_dir=persist_dir,
+            query_length=query_length
         )
+        self.retriever = ChromaDBLangChainRetriever(self.chroma_engine)
         hf_pipe = pipeline(
             "text2text-generation",
             model=generator_model_name,
-            device=0 if torch.cuda.is_available() else -1
+            device=0 if (device or torch.cuda.is_available()) else -1
         )
         self.llm = HuggingFacePipeline(pipeline=hf_pipe)
         self.prompt = PromptTemplate(
@@ -40,7 +50,7 @@ class LangChainRAG:
         self.rag_chain = RetrievalQA.from_chain_type(
             llm=self.llm,
             chain_type="stuff",
-            retriever=self.vectordb.as_retriever(search_kwargs={"k": top_k}),
+            retriever=self.retriever,
             return_source_documents=True,
             chain_type_kwargs={"prompt": self.prompt}
         )
@@ -49,7 +59,7 @@ class LangChainRAG:
         return self.rag_chain({"query": query})
 
     def interactive(self):
-        print("LangChain RAG pipeline ready. Type your question (Ctrl+C to exit):")
+        print("LangChain RAG pipeline (custom retriever) ready. Type your question (Ctrl+C to exit):")
         while True:
             try:
                 query = input("\nEnter your question: ")
